@@ -5,9 +5,17 @@ const jwt = require("jsonwebtoken");
  * Generates a signed stateless JWT token containing the user identity payload.
  * Configured to expire in 30 days to optimize user session persistence.
  */
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+const generateToken = (res, id) => {
+  const token = jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: "30d",
+  });
+
+  // Attach token to cookie
+  res.cookie("jwt", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV !== "development", // Use secure cookies in production
+    sameSite: "strict", // Prevent CSRF attacks
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 };
 
@@ -35,11 +43,11 @@ const registerUser = async (req, res, next) => {
     const user = await User.create({ name, email, password });
 
     if (user) {
+      generateToken(res, user._id);
       res.status(201).json({
         _id: user._id,
         name: user.name,
         email: user.email,
-        token: generateToken(user._id),
       });
     } else {
       res.status(400);
@@ -63,11 +71,11 @@ const loginUser = async (req, res, next) => {
 
     // Leverage instance method schema definition to compare unhashed body input with persisted hash
     if (user && (await user.matchPassword(password))) {
+      generateToken(res, user._id);
       res.status(200).json({
         _id: user._id,
         name: user.name,
         email: user.email,
-        token: generateToken(user._id),
       });
     } else {
       res.status(401);
@@ -76,6 +84,14 @@ const loginUser = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+const logoutUser = (req, res) => {
+  res.cookie("jwt", "", {
+    httpOnly: true,
+    expires: new Date(0),
+  });
+  res.status(200).json({ message: "User logged out" });
 };
 
 /**
@@ -106,5 +122,6 @@ const getUserProfile = async (req, res, next) => {
 module.exports = {
   registerUser,
   loginUser,
+  logoutUser,
   getUserProfile,
 };

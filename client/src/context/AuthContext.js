@@ -48,11 +48,16 @@ export const AuthProvider = ({ children }) => {
     router.push("/dashboard");
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
-    router.push("/login");
+  const logout = async () => {
+    try {
+      await API.post("/auth/logout");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      localStorage.removeItem("user");
+      setUser(null);
+      router.push("/login");
+    }
   };
 
   return (

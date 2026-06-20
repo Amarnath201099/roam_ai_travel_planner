@@ -49,7 +49,7 @@ const generateTrip = async (req, res, next) => {
 
     // Use gemini-1.5-flash as it is fast and supports strict JSON mode natively
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       generationConfig: { responseMimeType: "application/json" },
     });
 

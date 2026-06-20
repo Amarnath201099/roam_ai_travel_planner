@@ -1,6 +1,8 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
 const connectDB = require("./config/db.js");
 
 dotenv.config();
@@ -9,8 +11,15 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+// MUST explicitly define origin and credentials for cookies to work cross-origin
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    credentials: true,
+  }),
+);
 app.use(express.json());
+app.use(cookieParser());
 
 // Health Check API - Verifies server status and environment availability
 app.get("/api/health", (req, res) => {
