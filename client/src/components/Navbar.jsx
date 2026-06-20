@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
+import { useCurrency } from "../context/CurrencyContext";
 import { FiLogOut, FiCompass, FiLayers } from "react-icons/fi";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { currency, changeCurrency } = useCurrency();
 
   return (
     <nav className="bg-brand-card/90 backdrop-blur-md border-b border-brand-border sticky top-0 z-50 px-6 py-4 shadow-sm">
@@ -31,6 +33,16 @@ export default function Navbar() {
               <span className="text-sm text-brand-muted">
                 Hello, {user.name}
               </span>
+              <select
+                value={currency}
+                onChange={(e) => changeCurrency(e.target.value)}
+                className="bg-brand-bg border border-brand-border text-brand-text text-sm rounded-lg px-2 py-1 outline-none focus:border-brand-accent cursor-pointer"
+              >
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="INR">INR (₹)</option>
+              </select>
               <button
                 onClick={logout}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-white border border-brand-border hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all cursor-pointer text-brand-text"

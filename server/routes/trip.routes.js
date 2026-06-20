@@ -4,6 +4,7 @@ const {
   generateTrip,
   getUserTrips,
   getTripById,
+  updateTrip,
   deleteTrip,
   addActivity,
   removeActivity,
@@ -18,7 +19,7 @@ router.use(protect);
 // Standard REST pattern mapping for Trip resource
 router.route("/").post(generateTrip).get(getUserTrips);
 
-router.route("/:id").get(getTripById).delete(deleteTrip);
+router.route("/:id").get(getTripById).put(updateTrip).delete(deleteTrip);
 
 // Custom endpoint for modifying the actualExpenses array
 router.post("/:id/expenses", addExpense);

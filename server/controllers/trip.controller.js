@@ -124,6 +124,60 @@ const getTripById = async (req, res, next) => {
 };
 
 /**
+ * @desc    Update core trip settings and completely regenerate AI itinerary
+ * @route   PUT /api/trips/:id
+ * @access  Private
+ */
+const updateTrip = async (req, res, next) => {
+  const { destination, days, budgetTier, interests } = req.body;
+
+  try {
+    const trip = await Trip.findById(req.params.id);
+    if (!trip || trip.user.toString() !== req.user._id.toString()) {
+      res.status(403);
+      throw new Error("Not authorized or trip not found");
+    }
+
+    // System instruction for a full regeneration
+    const systemInstruction = `
+      You are an expert AI Travel Planner. Generate a structured travel itinerary for a trip to ${destination} for ${days} days.
+      Budget: ${budgetTier}. Interests: ${interests ? interests.join(", ") : "general"}.
+      
+      Return ONLY valid JSON:
+      {
+        "itinerary": [ { "day": Number, "activities": [ { "time": "String", "description": "String", "location": "String" } ] } ],
+        "hotelSuggestions": [ { "name": "String", "tier": "String", "description": "String" } ],
+        "estimatedBudget": { "flights": Number, "accommodation": Number, "food": Number, "activities": Number, "total": Number }
+      }
+    `;
+
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      generationConfig: { responseMimeType: "application/json" },
+    });
+
+    const result = await model.generateContent(systemInstruction);
+    const aiData = JSON.parse(result.response.text());
+
+    // Update document properties
+    trip.destination = destination;
+    trip.days = days;
+    trip.budgetTier = budgetTier;
+    trip.interests = interests;
+    trip.itinerary = aiData.itinerary;
+    trip.hotelSuggestions = aiData.hotelSuggestions;
+    trip.estimatedBudget = aiData.estimatedBudget;
+
+    // Note: We keep the actualExpenses array intact so they don't lose their receipts!
+
+    const updatedTrip = await trip.save();
+    res.status(200).json(updatedTrip);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc    Delete an entire trip
  * @route   DELETE /api/trips/:id
  * @access  Private
@@ -309,6 +363,7 @@ module.exports = {
   generateTrip,
   getUserTrips,
   getTripById,
+  updateTrip,
   deleteTrip,
   addActivity,
   removeActivity,

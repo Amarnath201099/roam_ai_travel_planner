@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useCurrency } from "../context/CurrencyContext";
 import { FiPlus, FiDollarSign, FiAlertCircle } from "react-icons/fi";
 import API from "../utils/api";
 
@@ -16,6 +17,8 @@ export default function ExpenseTracker({
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Food");
+
+  const { symbol, convert } = useCurrency();
 
   const totalSpent = expenses.reduce((sum, exp) => sum + exp.amount, 0);
   const percentageSpent =
@@ -63,9 +66,13 @@ export default function ExpenseTracker({
       {/* Progress Bar Section */}
       <div className="mb-6">
         <div className="flex justify-between text-sm font-medium mb-2">
-          <span className="text-brand-text">Spent: ${totalSpent}</span>
+          <span className="text-brand-text">
+            Spent: {symbol}
+            {convert(totalSpent)}
+          </span>
           <span className="text-brand-muted">
-            AI Estimate: ${estimatedTotal}
+            AI Estimate: {symbol}
+            {convert(estimatedTotal)}
           </span>
         </div>
         <div className="w-full h-3 bg-brand-bg rounded-full overflow-hidden border border-brand-border">
@@ -156,7 +163,10 @@ export default function ExpenseTracker({
                 </p>
                 <p className="text-xs text-brand-muted">{exp.category}</p>
               </div>
-              <span className="font-bold text-brand-text">${exp.amount}</span>
+              <span className="font-bold text-brand-text">
+                {symbol}
+                {convert(exp.amount)}
+              </span>
             </div>
           ))
         )}

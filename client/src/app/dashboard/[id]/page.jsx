@@ -8,6 +8,8 @@ import {
   FiArrowLeft,
   FiClock,
   FiStar,
+  FiSettings,
+  FiAlertTriangle,
 } from "react-icons/fi";
 import Link from "next/link";
 import API from "../../../utils/api";
@@ -20,6 +22,8 @@ export default function TripViewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeDay, setActiveDay] = useState(1);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
     const fetchTripDetails = async () => {
@@ -56,6 +60,26 @@ export default function TripViewPage() {
     (day) => day.day === activeDay,
   );
 
+  const handleGlobalEdit = async () => {
+    setRegenerating(true);
+    try {
+      // In a full build, you'd bind these to inputs in the modal.
+      // For now, we simulate sending the payload.
+      const { data } = await API.put(`/trips/${trip._id}`, {
+        destination: trip.destination, // e.g., updated via state
+        days: trip.days + 1, // e.g., added a day
+        budgetTier: trip.budgetTier,
+        interests: trip.interests,
+      });
+      setTrip(data);
+      setShowEditModal(false);
+    } catch (err) {
+      alert("Failed to regenerate trip");
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
   return (
     <div className="w-full">
       {/* Header Navigation */}
@@ -65,6 +89,12 @@ export default function TripViewPage() {
       >
         <FiArrowLeft /> Back to Dashboard
       </Link>
+      <button
+        onClick={() => setShowEditModal(true)}
+        className="inline-flex items-center gap-2 text-sm text-brand-muted hover:text-brand-accent transition-colors mb-6 font-medium ml-4"
+      >
+        <FiSettings /> Edit Trip Settings
+      </button>
 
       <div className="mb-8">
         <h1 className="text-4xl font-extrabold text-brand-text flex items-center gap-3">
@@ -171,6 +201,38 @@ export default function TripViewPage() {
           />
         </div>
       </div>
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-brand-card p-6 rounded-2xl max-w-md w-full border border-brand-border shadow-2xl">
+            <h3 className="text-xl font-bold text-brand-text flex items-center gap-2 mb-2">
+              <FiAlertTriangle className="text-amber-500" /> Destructive Action
+            </h3>
+            <p className="text-brand-muted text-sm mb-6">
+              Changing your destination, days, or budget will force the AI to
+              completely regenerate your daily itinerary. Any custom activities
+              you added will be overwritten. Your expense tracking history will
+              remain.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 rounded-lg font-medium text-brand-muted hover:bg-brand-bg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGlobalEdit}
+                disabled={regenerating}
+                className="px-4 py-2 bg-brand-accent text-white rounded-lg font-medium hover:bg-brand-hover transition-colors shadow-sm disabled:opacity-50"
+              >
+                {regenerating
+                  ? "Regenerating AI Plan..."
+                  : "Confirm & Regenerate"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
