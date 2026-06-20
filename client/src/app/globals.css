@@ -1,22 +1,30 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-brand-bg: #f8fafc; /* Light slate/off-white for main background */
+  --color-brand-card: #ffffff; /* Pure white for containers/cards */
+  --color-brand-text: #0f172a; /* Deep dark slate for primary readability */
+  --color-brand-muted: #64748b; /* Medium gray for secondary text */
+  --color-brand-accent: #1d4ed8; /* Strong royal/dark blue for primary actions */
+  --color-brand-hover: #1e40af; /* Even darker blue for hover states */
+  --color-brand-border: #e2e8f0; /* Light gray for subtle borders */
+}
 
 @layer base {
   body {
-    @apply bg-brand-dark text-brand-white antialiased min-h-screen;
+    @apply bg-brand-bg text-brand-text antialiased min-h-screen;
   }
 }
 
-/* Custom scrollbar for a polished SaaS look */
+/* Custom scrollbar optimized for light mode */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-brand-dark;
+  @apply bg-brand-bg;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-brand-card rounded-full;
+  @apply bg-brand-border rounded-full;
 }
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-brand-muted;

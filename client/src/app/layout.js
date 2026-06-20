@@ -11,7 +11,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-brand-dark text-brand-white antialiased min-h-screen flex flex-col">
+      {/* Updated body classes to use the new light background and dark text */}
+      <body className="bg-brand-bg text-brand-text antialiased min-h-screen flex flex-col">
         <AuthProvider>
           <Navbar />
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8">

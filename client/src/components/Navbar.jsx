@@ -8,11 +8,11 @@ export default function Navbar() {
   const { user, logout } = useAuth();
 
   return (
-    <nav className="bg-brand-card/50 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-6 py-4">
+    <nav className="bg-brand-card/90 backdrop-blur-md border-b border-brand-border sticky top-0 z-50 px-6 py-4 shadow-sm">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link
           href="/"
-          className="flex items-center gap-2 font-bold text-xl tracking-wide text-brand-white"
+          className="flex items-center gap-2 font-bold text-xl tracking-wide text-brand-text"
         >
           <FiCompass className="text-brand-accent text-2xl" />
           Roam<span className="text-brand-accent">AI</span>
@@ -27,13 +27,13 @@ export default function Navbar() {
               >
                 <FiLayers /> Dashboard
               </Link>
-              <div className="h-4 w-[1px] bg-slate-700" />
+              <div className="h-4 w-[1px] bg-brand-border" />
               <span className="text-sm text-brand-muted">
                 Hello, {user.name}
               </span>
               <button
                 onClick={logout}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-slate-800 border border-slate-700 hover:bg-red-950/30 hover:border-red-500/50 hover:text-red-400 transition-all cursor-pointer"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-white border border-brand-border hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all cursor-pointer text-brand-text"
               >
                 <FiLogOut /> Logout
               </button>
@@ -48,7 +48,7 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/register"
-                className="px-4 py-2 bg-brand-accent text-brand-dark rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
+                className="px-4 py-2 bg-brand-accent text-white rounded-xl font-semibold text-sm hover:bg-brand-hover transition-colors shadow-sm"
               >
                 Get Started
               </Link>
