@@ -4,6 +4,23 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 // Initialize the Gemini client using the environment variable
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// Helper to deep-copy the current itinerary into the history queue (Max 5)
+const pushToHistory = (trip, title) => {
+  // Use JSON parse/stringify to break Mongoose references for a pure snapshot
+  const snapshot = JSON.parse(JSON.stringify(trip.itinerary));
+
+  trip.versionHistory.push({
+    versionId: Date.now().toString(), // Simple unique ID
+    title: title,
+    itineraryData: snapshot,
+  });
+
+  // Enforce FIFO: If we exceed 5 versions, drop the oldest (index 0)
+  if (trip.versionHistory.length > 5) {
+    trip.versionHistory.shift();
+  }
+};
+
 /**
  * @desc    Generate a new trip using Gemini AI and save to DB
  * @route   POST /api/trips
@@ -152,12 +169,15 @@ const updateTrip = async (req, res, next) => {
     `;
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       generationConfig: { responseMimeType: "application/json" },
     });
 
     const result = await model.generateContent(systemInstruction);
     const aiData = JSON.parse(result.response.text());
+
+    // NEW: Save current state before overwriting
+    pushToHistory(trip, "Global Edit: Changed Trip Parameters");
 
     // Update document properties
     trip.destination = destination;
@@ -302,12 +322,15 @@ const regenerateDay = async (req, res, next) => {
     `;
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       generationConfig: { responseMimeType: "application/json" },
     });
 
     const result = await model.generateContent(systemInstruction);
     const aiData = JSON.parse(result.response.text());
+
+    // NEW: Save current state before overwriting
+    pushToHistory(trip, `AI Edit (Day ${dayNumber}): "${userPrompt}"`);
 
     // Find and replace the specific day in the database array
     const dayIndex = trip.itinerary.findIndex((d) => d.day === dayNumber);
@@ -359,6 +382,136 @@ const addExpense = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Restore an older version of the itinerary
+ * @route   PUT /api/trips/:id/restore/:versionId
+ * @access  Private
+ */
+const restoreVersion = async (req, res, next) => {
+  try {
+    const trip = await Trip.findById(req.params.id);
+    if (
+      !trip ||
+      trip.user.toString() !== req.user._id.toString() ||
+      trip.isFinalized
+    ) {
+      res.status(403);
+      throw new Error("Not authorized, trip not found, or trip is finalized");
+    }
+
+    const targetVersion = trip.versionHistory.find(
+      (v) => v.versionId === req.params.versionId,
+    );
+    if (!targetVersion) {
+      res.status(404);
+      throw new Error("Version not found");
+    }
+
+    // Save current state before restoring an old one!
+    pushToHistory(trip, "Before Restoring Version");
+
+    trip.itinerary = targetVersion.itineraryData;
+    await trip.save();
+
+    res.status(200).json(trip);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Merge multiple versions together using AI
+ * @route   POST /api/trips/:id/merge
+ * @access  Private
+ */
+const mergeVersions = async (req, res, next) => {
+  const { versionIds, userPrompt } = req.body;
+
+  try {
+    const trip = await Trip.findById(req.params.id);
+    if (
+      !trip ||
+      trip.user.toString() !== req.user._id.toString() ||
+      trip.isFinalized
+    ) {
+      res.status(403);
+      throw new Error("Not authorized or trip is finalized");
+    }
+
+    // Extract the exact itinerary arrays the user wants to merge
+    const contexts = versionIds
+      .map((vId) => {
+        const v = trip.versionHistory.find((vh) => vh.versionId === vId);
+        return v ? v.itineraryData : null;
+      })
+      .filter(Boolean);
+
+    if (contexts.length < 2) {
+      res.status(400);
+      throw new Error("Please provide at least two valid version IDs to merge");
+    }
+
+    const systemInstruction = `
+      You are an expert AI Travel Planner performing a complex data merge.
+      The user is supplying multiple versions of their itinerary (Contexts) and a specific prompt on how to combine them.
+      
+      User Prompt: "${userPrompt}"
+      
+      Version A: ${JSON.stringify(contexts[0])}
+      Version B: ${JSON.stringify(contexts[1])}
+      
+      Analyze the contexts, apply the user's logic, and generate a single, unified itinerary.
+      You MUST return ONLY valid JSON matching exactly this schema:
+      [
+        { "day": Number, "activities": [ { "time": "String", "description": "String", "location": "String" } ] }
+      ]
+    `;
+
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      generationConfig: { responseMimeType: "application/json" },
+    });
+
+    const result = await model.generateContent(systemInstruction);
+    const mergedItinerary = JSON.parse(result.response.text());
+
+    // Save current state before applying merge
+    pushToHistory(trip, `AI Merge: ${userPrompt}`);
+
+    trip.itinerary = mergedItinerary;
+    await trip.save();
+
+    res.status(200).json(trip);
+  } catch (error) {
+    console.error("AI Merge Error:", error);
+    res.status(500);
+    next(new Error("Failed to merge versions. Please try again."));
+  }
+};
+
+/**
+ * @desc    Finalize the trip, locking edits and clearing history
+ * @route   PUT /api/trips/:id/finalize
+ * @access  Private
+ */
+const finalizeTrip = async (req, res, next) => {
+  try {
+    const trip = await Trip.findById(req.params.id);
+    if (!trip || trip.user.toString() !== req.user._id.toString()) {
+      res.status(403);
+      throw new Error("Not authorized or trip not found");
+    }
+
+    trip.isFinalized = true;
+    trip.versionHistory = []; // Wipe history to commit the final version
+
+    await trip.save();
+    res.status(200).json({ message: "Trip finalized", isFinalized: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   generateTrip,
   getUserTrips,
@@ -369,4 +522,7 @@ module.exports = {
   removeActivity,
   regenerateDay,
   addExpense,
+  restoreVersion,
+  mergeVersions,
+  finalizeTrip,
 };

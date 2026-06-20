@@ -47,4 +47,3 @@ export const CurrencyProvider = ({ children }) => {
 };
 
 export const useCurrency = () => useContext(CurrencyContext);
-s;

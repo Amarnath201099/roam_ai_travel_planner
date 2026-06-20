@@ -6,7 +6,7 @@ import { useCurrency } from "../context/CurrencyContext";
 import { FiLogOut, FiCompass, FiLayers } from "react-icons/fi";
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const { currency, changeCurrency } = useCurrency();
 
   return (
@@ -21,7 +21,9 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-6">
-          {user ? (
+          {loading ? (
+            <div className="h-8 w-24 bg-brand-border animate-pulse rounded-lg"></div>
+          ) : user ? (
             <>
               <Link
                 href="/dashboard"

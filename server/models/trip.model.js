@@ -17,7 +17,7 @@ const tripSchema = new mongoose.Schema(
     },
     interests: [{ type: String }],
 
-    // Structured JSON data matching expected Gemini LLM generation schema
+    // Base Truth
     itinerary: [
       {
         day: { type: Number },
@@ -44,8 +44,6 @@ const tripSchema = new mongoose.Schema(
       activities: { type: Number, default: 0 },
       total: { type: Number, default: 0 },
     },
-
-    // Custom Feature: Actual Costs Tracking vs AI Estimations
     actualExpenses: [
       {
         category: {
@@ -55,6 +53,17 @@ const tripSchema = new mongoose.Schema(
         description: { type: String },
         amount: { type: Number, required: true },
         dateAdded: { type: Date, default: Date.now },
+      },
+    ],
+
+    // --- NEW: Version Control & State ---
+    isFinalized: { type: Boolean, default: false },
+    versionHistory: [
+      {
+        versionId: { type: String, required: true },
+        title: { type: String, required: true },
+        savedAt: { type: Date, default: Date.now },
+        itineraryData: { type: Array, required: true }, // Deep copy snapshot of itinerary
       },
     ],
   },

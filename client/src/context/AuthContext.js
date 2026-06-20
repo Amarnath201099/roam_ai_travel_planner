@@ -12,23 +12,26 @@ export const AuthProvider = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // Rehydrate authentications state from local storage on bootstrap
-    const storedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
+    // Rehydrate authentication state by checking if the httpOnly cookie is valid
+    const checkUserSession = async () => {
+      try {
+        // Our API interceptor automatically sends the cookie with this request
+        const { data } = await API.get("/auth/profile");
+        setUser({ name: data.name, email: data.email });
+      } catch (error) {
+        // If it fails (e.g., 401 Unauthorized, cookie expired or missing), we remain unauthenticated
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    checkUserSession();
   }, []);
 
   const login = async (email, password) => {
     const { data } = await API.post("/auth/login", { email, password });
-    localStorage.setItem("token", data.token);
-    localStorage.setItem(
-      "user",
-      JSON.stringify({ name: data.name, email: data.email }),
-    );
+    // The backend set the cookie, we just update the React state
     setUser({ name: data.name, email: data.email });
     router.push("/dashboard");
   };
@@ -39,22 +42,19 @@ export const AuthProvider = ({ children }) => {
       email,
       password,
     });
-    localStorage.setItem("token", data.token);
-    localStorage.setItem(
-      "user",
-      JSON.stringify({ name: data.name, email: data.email }),
-    );
+    // The backend set the cookie, we just update the React state
     setUser({ name: data.name, email: data.email });
     router.push("/dashboard");
   };
 
   const logout = async () => {
     try {
+      // Tell backend to destroy the cookie
       await API.post("/auth/logout");
     } catch (error) {
-      console.error(error);
+      console.error("Logout failed:", error);
     } finally {
-      localStorage.removeItem("user");
+      // Clear React state and redirect
       setUser(null);
       router.push("/login");
     }

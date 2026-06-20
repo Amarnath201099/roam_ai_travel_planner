@@ -10,6 +10,9 @@ const {
   removeActivity,
   regenerateDay,
   addExpense,
+  restoreVersion,
+  mergeVersions,
+  finalizeTrip,
 } = require("../controllers/trip.controller.js");
 const { protect } = require("../middleware/auth.middleware.js");
 
@@ -32,5 +35,14 @@ router.delete("/:id/itinerary/:day/activities/:activityId", removeActivity);
 
 // AI Regeneration for a specific day based on a text prompt
 router.post("/:id/itinerary/:day/regenerate", regenerateDay);
+
+// Restore a specific version
+router.put("/:id/restore/:versionId", restoreVersion);
+
+// Merge multiple versions using AI
+router.post("/:id/merge", mergeVersions);
+
+// Finalize the trip (lock document, wipe history)
+router.put("/:id/finalize", finalizeTrip);
 
 module.exports = router;
