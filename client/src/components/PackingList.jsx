@@ -1,4 +1,10 @@
-import { FiCheckSquare, FiCalendar, FiPackage, FiSun } from "react-icons/fi";
+import {
+  FiCheckSquare,
+  FiCalendar,
+  FiPackage,
+  FiSun,
+  FiCheck,
+} from "react-icons/fi";
 
 export default function PackingList({ packingList }) {
   if (!packingList) return null;
@@ -52,10 +58,10 @@ export default function PackingList({ packingList }) {
               <ul className="space-y-2.5">
                 {d.items.map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3 group">
-                    <input
-                      type="checkbox"
-                      className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
-                    />
+                    {/* Decorative bullet point instead of checkbox */}
+                    <span className="mt-1 flex items-center justify-center w-4 h-4 rounded-full bg-indigo-50 text-indigo-600">
+                      <FiCheck size={10} strokeWidth={4} />
+                    </span>
                     <span className="text-gray-600 text-sm group-hover:text-gray-900 transition-colors">
                       {item}
                     </span>

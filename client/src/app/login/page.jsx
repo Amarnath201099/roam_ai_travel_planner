@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Link from "next/link";
+import { FiEye, FiEyeOff } from "react-icons/fi"; // 1. Import the icons
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // 2. New state for toggle
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -54,18 +56,30 @@ export default function LoginPage() {
             className="w-full px-4 py-3 rounded-xl bg-brand-bg border border-brand-border focus:border-brand-accent focus:ring-1 focus:ring-brand-accent outline-none text-brand-text text-sm transition-all"
           />
         </div>
+
+        {/* 3. Updated Password Field with Relative Wrapper */}
         <div>
           <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">
             Password
           </label>
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-brand-bg border border-brand-border focus:border-brand-accent focus:ring-1 focus:ring-brand-accent outline-none text-brand-text text-sm transition-all"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"} // Toggle type
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-brand-bg border border-brand-border focus:border-brand-accent focus:ring-1 focus:ring-brand-accent outline-none text-brand-text text-sm transition-all pr-12"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-muted hover:text-brand-accent transition-colors"
+            >
+              {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+            </button>
+          </div>
         </div>
+
         <button
           type="submit"
           disabled={loading}

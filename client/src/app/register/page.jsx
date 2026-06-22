@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Link from "next/link";
-import { FiAlertCircle } from "react-icons/fi";
+import { FiAlertCircle, FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -12,16 +12,19 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
   });
+
+  // State for toggling password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [formErrors, setFormErrors] = useState({});
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { register } = useAuth();
 
-  // Helper function to update form state easily
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    // Clear the specific error when the user starts typing again
     if (formErrors[e.target.name]) {
       setFormErrors({ ...formErrors, [e.target.name]: "" });
     }
@@ -29,49 +32,34 @@ export default function RegisterPage() {
 
   const validateForm = () => {
     const errors = {};
-
-    // Name validation: Must be at least 2 characters
-    if (formData.name.trim().length < 2) {
+    if (formData.name.trim().length < 2)
       errors.name = "Name must be at least 2 characters long.";
-    }
-
-    // Email validation: Standard email regex format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
+    if (!emailRegex.test(formData.email))
       errors.email = "Please enter a valid email address.";
-    }
-
-    // Password validation: Minimum 8 characters, at least 1 uppercase, 1 lowercase, 1 number or symbol
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\d!@#$%^&*_=+-]).{8,}$/;
     if (!passwordRegex.test(formData.password)) {
       errors.password =
-        "Password must be 8+ characters with at least 1 uppercase, 1 lowercase, and 1 number/symbol.";
+        "Password must be 8+ characters with uppercase, lowercase, and a symbol/number.";
     }
-
-    // Confirm Password validation
     if (formData.password !== formData.confirmPassword) {
       errors.confirmPassword = "Passwords do not match.";
     }
 
     setFormErrors(errors);
-    // Returns true if there are no properties in the errors object
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setApiError("");
-
-    if (!validateForm()) return; // Stop submission if validation fails
+    if (!validateForm()) return;
 
     setLoading(true);
     try {
       await register(formData.name, formData.email, formData.password);
     } catch (err) {
-      setApiError(
-        err.response?.data?.message ||
-          "Failed to create account. Please try again.",
-      );
+      setApiError(err.response?.data?.message || "Failed to create account.");
     } finally {
       setLoading(false);
     }
@@ -93,7 +81,7 @@ export default function RegisterPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Name Input */}
+        {/* Name & Email Fields remain standard */}
         <div>
           <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">
             Full Name
@@ -104,14 +92,10 @@ export default function RegisterPage() {
             required
             value={formData.name}
             onChange={handleChange}
-            className={`w-full px-4 py-3 rounded-xl bg-brand-bg border focus:outline-none focus:ring-1 text-brand-text text-sm transition-all ${formErrors.name ? "border-red-400 focus:border-red-400 focus:ring-red-400" : "border-brand-border focus:border-brand-accent focus:ring-brand-accent"}`}
+            className={`w-full px-4 py-3 rounded-xl bg-brand-bg border ${formErrors.name ? "border-red-400" : "border-brand-border"} focus:outline-none focus:ring-1 focus:ring-brand-accent text-sm`}
           />
-          {formErrors.name && (
-            <p className="text-xs text-red-500 mt-1">{formErrors.name}</p>
-          )}
         </div>
 
-        {/* Email Input */}
         <div>
           <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">
             Email Address
@@ -122,69 +106,70 @@ export default function RegisterPage() {
             required
             value={formData.email}
             onChange={handleChange}
-            className={`w-full px-4 py-3 rounded-xl bg-brand-bg border focus:outline-none focus:ring-1 text-brand-text text-sm transition-all ${formErrors.email ? "border-red-400 focus:border-red-400 focus:ring-red-400" : "border-brand-border focus:border-brand-accent focus:ring-brand-accent"}`}
+            className={`w-full px-4 py-3 rounded-xl bg-brand-bg border ${formErrors.email ? "border-red-400" : "border-brand-border"} focus:outline-none focus:ring-1 focus:ring-brand-accent text-sm`}
           />
-          {formErrors.email && (
-            <p className="text-xs text-red-500 mt-1">{formErrors.email}</p>
-          )}
         </div>
 
-        {/* Password Input */}
+        {/* Password Input with Toggle */}
         <div>
           <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">
             Password
           </label>
-          <input
-            type="password"
-            name="password"
-            required
-            value={formData.password}
-            onChange={handleChange}
-            className={`w-full px-4 py-3 rounded-xl bg-brand-bg border focus:outline-none focus:ring-1 text-brand-text text-sm transition-all ${formErrors.password ? "border-red-400 focus:border-red-400 focus:ring-red-400" : "border-brand-border focus:border-brand-accent focus:ring-brand-accent"}`}
-          />
-          {formErrors.password && (
-            <p className="text-xs text-red-500 mt-1">{formErrors.password}</p>
-          )}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              required
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-xl bg-brand-bg border border-brand-border focus:outline-none focus:ring-1 focus:ring-brand-accent pr-12 text-sm"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-muted hover:text-brand-accent"
+            >
+              {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+            </button>
+          </div>
         </div>
 
-        {/* Confirm Password Input */}
+        {/* Confirm Password Input with Toggle */}
         <div>
           <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">
             Confirm Password
           </label>
-          <input
-            type="password"
-            name="confirmPassword"
-            required
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            className={`w-full px-4 py-3 rounded-xl bg-brand-bg border focus:outline-none focus:ring-1 text-brand-text text-sm transition-all ${formErrors.confirmPassword ? "border-red-400 focus:border-red-400 focus:ring-red-400" : "border-brand-border focus:border-brand-accent focus:ring-brand-accent"}`}
-          />
-          {formErrors.confirmPassword && (
-            <p className="text-xs text-red-500 mt-1">
-              {formErrors.confirmPassword}
-            </p>
-          )}
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              required
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-xl bg-brand-bg border border-brand-border focus:outline-none focus:ring-1 focus:ring-brand-accent pr-12 text-sm"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-muted hover:text-brand-accent"
+            >
+              {showConfirmPassword ? (
+                <FiEyeOff size={18} />
+              ) : (
+                <FiEye size={18} />
+              )}
+            </button>
+          </div>
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full mt-2 py-3 bg-brand-accent text-white font-bold rounded-xl hover:bg-brand-hover transition-colors text-sm disabled:opacity-50 cursor-pointer shadow-sm"
+          className="w-full py-3 bg-brand-accent text-white font-bold rounded-xl hover:bg-brand-hover transition-colors text-sm shadow-sm"
         >
           {loading ? "Creating Account..." : "Sign Up"}
         </button>
       </form>
-
-      <p className="mt-6 text-center text-sm text-brand-muted">
-        Already have an account?{" "}
-        <Link
-          href="/login"
-          className="text-brand-accent hover:underline font-medium"
-        >
-          Log in here
-        </Link>
-      </p>
     </div>
   );
 }
