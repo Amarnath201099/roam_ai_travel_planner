@@ -15,19 +15,19 @@ import WarningModal from "../../components/WarningModal";
 import { useAuth } from "../../context/AuthContext";
 
 export default function ProfilePage() {
-  const { user, setUser } = useAuth();
+  const { user, setUser, loading } = useAuth();
 
   // --- States ---
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [originalProfileData, setOriginalProfileData] = useState(null); // Stores DB snapshot for canceling
 
-  cconst[(profileData, setProfileData)] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    homeLocation: user?.homeLocation || "",
-    dietaryPreferences: user?.dietaryPreferences?.join(", ") || "",
-    travelPace: user?.travelPace || "Moderate",
-    preferredCurrency: user?.preferredCurrency || "USD",
+  const [profileData, setProfileData] = useState({
+    name: "",
+    email: "",
+    homeLocation: "",
+    dietaryPreferences: "",
+    travelPace: "Moderate",
+    preferredCurrency: "USD",
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -46,6 +46,28 @@ export default function ProfilePage() {
     title: "",
     message: "",
   });
+
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        name: user.name || "",
+        email: user.email || "",
+        homeLocation: user.homeLocation || "",
+        dietaryPreferences: user.dietaryPreferences?.join(", ") || "",
+        travelPace: user.travelPace || "Moderate",
+        preferredCurrency: user.preferredCurrency || "USD",
+      });
+      // Update the snapshot for the cancel button too!
+      setOriginalProfileData({
+        name: user.name || "",
+        email: user.email || "",
+        homeLocation: user.homeLocation || "",
+        dietaryPreferences: user.dietaryPreferences?.join(", ") || "",
+        travelPace: user.travelPace || "Moderate",
+        preferredCurrency: user.preferredCurrency || "USD",
+      });
+    }
+  }, [user]);
 
   // --- Handlers ---
   const handleCancelEdit = () => {
@@ -69,7 +91,7 @@ export default function ProfilePage() {
           .filter((item) => item !== ""),
       };
 
-      await API.put("/auth/profile", payload);
+      const { data } = await API.put("/auth/profile", payload);
 
       // Update the global auth context so the Navbar and Modals know about the changes instantly!
       if (setUser) {
@@ -144,6 +166,14 @@ export default function ProfilePage() {
       ? "px-4 py-2 border border-brand-border focus:border-brand-accent bg-white"
       : "px-0 py-2 border-transparent bg-transparent text-brand-text font-medium disabled:opacity-100"
   }`;
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-accent"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto w-full space-y-8">

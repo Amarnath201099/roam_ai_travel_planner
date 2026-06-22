@@ -18,23 +18,6 @@ export default function NewTripModal({ isOpen, onClose }) {
     interests: "",
   });
 
-  // Pre-fill the origin with the user's home location when the modal opens
-  useEffect(() => {
-    if (isOpen) {
-      const fetchProfile = async () => {
-        try {
-          const { data } = await API.get("/auth/profile");
-          if (data.homeLocation) {
-            setFormData((prev) => ({ ...prev, origin: data.homeLocation }));
-          }
-        } catch (err) {
-          console.error("Failed to fetch profile for origin prepopulation");
-        }
-      };
-      fetchProfile();
-    }
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {

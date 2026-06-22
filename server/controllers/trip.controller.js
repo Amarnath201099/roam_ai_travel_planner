@@ -94,7 +94,7 @@ const getUserTrips = async (req, res, next) => {
   try {
     // Optimize performance by selecting only the fields needed for the dashboard cards
     const trips = await Trip.find({ user: req.user._id })
-      .select("destination days budgetTier createdAt")
+      .select("destination days budgetTier createdAt estimatedBudget")
       .sort({ createdAt: -1 });
     res.status(200).json(trips);
   } catch (error) {

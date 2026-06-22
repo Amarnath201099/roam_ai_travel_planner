@@ -17,7 +17,8 @@ export const AuthProvider = ({ children }) => {
       try {
         // Our API interceptor automatically sends the cookie with this request
         const { data } = await API.get("/auth/profile");
-        setUser({ name: data.name, email: data.email });
+        // UPDATE: Store the complete user object instead of just name and email
+        setUser(data);
       } catch (error) {
         // If it fails (e.g., 401 Unauthorized, cookie expired or missing), we remain unauthenticated
         setUser(null);
@@ -31,8 +32,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const { data } = await API.post("/auth/login", { email, password });
-    // The backend set the cookie, we just update the React state
-    setUser({ name: data.name, email: data.email });
+    // UPDATE: Store the complete user object
+    setUser(data);
     router.push("/dashboard");
   };
 
@@ -42,8 +43,8 @@ export const AuthProvider = ({ children }) => {
       email,
       password,
     });
-    // The backend set the cookie, we just update the React state
-    setUser({ name: data.name, email: data.email });
+    // UPDATE: Store the complete user object
+    setUser(data);
     router.push("/dashboard");
   };
 
@@ -61,7 +62,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, setUser, loading, login, register, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

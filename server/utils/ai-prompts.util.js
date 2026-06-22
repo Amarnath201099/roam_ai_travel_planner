@@ -1,7 +1,5 @@
 // Centralized library for all Gemini system prompts.
-// Keeping these here prevents the trip controller from becoming bloated and hard to read.
 
-// Add origin, travelPace, and diet to the parameters
 const getGenerateTripPrompt = (
   destination,
   origin,
@@ -11,7 +9,7 @@ const getGenerateTripPrompt = (
   travelPace,
   diet,
 ) => `
-  You are an expert AI Travel Planner. Generate a structured travel itinerary.
+  You are an expert, premium AI Travel Planner. Generate a highly detailed, structured travel itinerary.
   
   Trip Context:
   - Departure City (Origin): ${origin || "Not specified. Plan standard arrival."}
@@ -19,13 +17,14 @@ const getGenerateTripPrompt = (
   - Duration: ${days} days
   - Budget: ${budgetTier}
   - Travel Pace: ${travelPace || "Moderate"}
-  - Dietary Needs: ${diet && diet.length > 0 ? diet.join(", ") : "None specific"}
+  - Dietary Needs: ${diet && diet.length > 0 ? diet.join(", ") : "Standard / No restrictions"}
   - Interests: ${interests && interests.length > 0 ? interests.join(", ") : "general sightseeing"}
   
   CRITICAL INSTRUCTIONS:
-  1. If an Origin is provided, include estimated flight/travel costs from Origin to Destination in the estimatedBudget.
-  2. Respect the Travel Pace (e.g., 'Relaxed' = fewer activities with more downtime, 'Fast-paced' = packed schedule).
-  3. Ensure all food recommendations strictly adhere to the Dietary Needs.
+  1. Respect the Travel Pace and Dietary Needs.
+  2. For activities, categorize them with 1-2 tags (e.g., "Historic", "Adventure", "Relaxation").
+  3. Create a day-by-day packing list specific to that day's planned activities.
+  4. Provide 3 hotel suggestions (Luxury, Standard, Budget) including ratings, dietary catering, and a 1-sentence description.
 
   You MUST return ONLY valid JSON matching exactly this schema:
   {
@@ -33,12 +32,31 @@ const getGenerateTripPrompt = (
       {
         "day": Number,
         "activities": [
-          { "time": "String (e.g., '09:00 AM')", "description": "String", "location": "String" }
+          { 
+            "time": "String (e.g., '09:00 AM')", 
+            "title": "String (Short catchy name)",
+            "description": "String (1-2 sentences explaining what to do)", 
+            "location": "String (Specific map-searchable location)",
+            "tags": ["String"]
+          }
         ]
       }
     ],
+    "packingList": [
+      {
+        "day": Number,
+        "items": ["String", "String"]
+      }
+    ],
     "hotelSuggestions": [
-      { "name": "String", "tier": "String", "description": "String" }
+      { 
+        "name": "String", 
+        "tier": "String", 
+        "description": "String",
+        "rating": "String (e.g., '4.7/5')",
+        "dietaryOptions": "String (e.g., 'Pure Veg', 'Vegan friendly', 'Both')",
+        "specialDishes": ["String"]
+      }
     ],
     "estimatedBudget": {
       "flights": Number,
@@ -50,7 +68,6 @@ const getGenerateTripPrompt = (
   }
 `;
 
-// You should also update getUpdateTripPrompt with the same parameters so Global Edits retain these settings!
 const getUpdateTripPrompt = (
   destination,
   origin,
@@ -65,10 +82,18 @@ const getUpdateTripPrompt = (
   Budget: ${budgetTier}. Pace: ${travelPace || "Moderate"}. Diet: ${diet && diet.length > 0 ? diet.join(", ") : "None"}.
   Interests: ${interests && interests.length > 0 ? interests.join(", ") : "general"}.
   
-  Return ONLY valid JSON matching the standard schema...
+  Return ONLY valid JSON matching the exact schema below:
   {
-    "itinerary": [ { "day": Number, "activities": [ { "time": "String", "description": "String", "location": "String" } ] } ],
-    "hotelSuggestions": [ { "name": "String", "tier": "String", "description": "String" } ],
+    "itinerary": [ 
+      { 
+        "day": Number, 
+        "activities": [ 
+          { "time": "String", "title": "String", "description": "String", "location": "String", "tags": ["String"] } 
+        ] 
+      } 
+    ],
+    "packingList": [ { "day": Number, "items": ["String"] } ],
+    "hotelSuggestions": [ { "name": "String", "tier": "String", "description": "String", "rating": "String", "dietaryOptions": "String", "specialDishes": ["String"] } ],
     "estimatedBudget": { "flights": Number, "accommodation": Number, "food": Number, "activities": Number, "total": Number }
   }
 `;
@@ -89,14 +114,20 @@ const getRegenerateDayPrompt = (trip, dayNumber, userPrompt) => `
   User Custom Request: "${userPrompt}"
   
   Strict Rules:
-  1. DO NOT duplicate activities or locations that already exist on other days in the Current Full Itinerary.
-  2. Ensure geographical and logistical flow makes sense with the days immediately before and after Day ${dayNumber}.
+  1. DO NOT duplicate activities or locations that already exist on other days.
+  2. Ensure geographical and logistical flow makes sense with surrounding days.
   
-  You MUST return ONLY valid JSON matching exactly this schema for this single day:
+  You MUST return ONLY valid JSON matching exactly this schema for this single day. DO NOT forget the title and tags properties:
   {
     "day": ${dayNumber},
     "activities": [
-      { "time": "String (e.g., '09:00 AM')", "description": "String", "location": "String" }
+      { 
+        "time": "String (e.g., '09:00 AM')", 
+        "title": "String",
+        "description": "String", 
+        "location": "String",
+        "tags": ["String"] 
+      }
     ]
   }
 `;
@@ -122,9 +153,14 @@ const getMergeVersionsPrompt = (trip, contexts, userPrompt) => `
   3. The final output MUST contain exactly ${trip.days} day objects.
   4. The "day" property in the output MUST be numbered sequentially starting from 1 up to ${trip.days}.
   
-  You MUST return ONLY valid JSON matching exactly this schema:
+  You MUST return ONLY valid JSON matching exactly this schema. Ensure every activity retains its title and tags:
   [
-    { "day": Number, "activities": [ { "time": "String", "description": "String", "location": "String" } ] }
+    { 
+      "day": Number, 
+      "activities": [ 
+        { "time": "String", "title": "String", "description": "String", "location": "String", "tags": ["String"] } 
+      ] 
+    }
   ]
 `;
 
