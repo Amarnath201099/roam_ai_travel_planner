@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FiX, FiMapPin, FiBriefcase } from "react-icons/fi";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { useAuth } from "../context/AuthContext";
 import API from "../utils/api";
 
@@ -16,7 +18,18 @@ export default function NewTripModal({ isOpen, onClose }) {
     days: 3,
     budgetTier: "Medium",
     interests: "",
+    startDate: new Date(),
+    groupType: "Solo",
+    groupSize: 1,
   });
+
+  // --- Added Logic ---
+  useEffect(() => {
+    if (formData.groupType === "Solo")
+      setFormData({ ...formData, groupSize: 1 });
+    if (formData.groupType === "Couple")
+      setFormData({ ...formData, groupSize: 2 });
+  }, [formData.groupType]);
 
   if (!isOpen) return null;
 
@@ -153,6 +166,69 @@ export default function NewTripModal({ isOpen, onClose }) {
               }
               className="w-full px-3 py-2 border border-brand-border rounded-lg outline-none focus:border-brand-accent"
             />
+          </div>
+
+          <div className="flex gap-4">
+            {/* Start Date Picker */}
+            <div className="w-1/3">
+              <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
+                Start Date
+              </label>
+              <DatePicker
+                selected={formData.startDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, startDate: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-brand-border rounded-lg outline-none focus:border-brand-accent transition-colors"
+                wrapperClassName="w-full"
+                dateFormat="MMM d, yyyy"
+              />
+            </div>
+
+            {/* Travel Group Type */}
+            <div className="w-1/3">
+              <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
+                Travel With
+              </label>
+              <select
+                value={formData.groupType}
+                onChange={(e) =>
+                  setFormData({ ...formData, groupType: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-brand-border rounded-lg outline-none focus:border-brand-accent bg-white transition-colors"
+              >
+                <option value="Solo">Solo</option>
+                <option value="Couple">Couple</option>
+                <option value="Family">Family</option>
+                <option value="Friends">Friends</option>
+              </select>
+            </div>
+
+            {/* Group Size */}
+            <div className="w-1/2">
+              <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
+                Group Size
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="20"
+                disabled={
+                  formData.groupType === "Solo" ||
+                  formData.groupType === "Couple"
+                }
+                value={formData.groupSize}
+                onChange={(e) =>
+                  setFormData({ ...formData, groupSize: e.target.value })
+                }
+                className={`w-full px-3 py-2 border border-brand-border rounded-lg outline-none transition-colors 
+        ${
+          formData.groupType === "Solo" || formData.groupType === "Couple"
+            ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+            : "focus:border-brand-accent"
+        }`}
+              />
+            </div>
           </div>
 
           <div className="pt-4 flex justify-end gap-3 border-t border-brand-border mt-6">

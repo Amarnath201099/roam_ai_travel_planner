@@ -5,7 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { useCurrency } from "../context/CurrencyContext";
-import { FiLogOut, FiCompass, FiLayers, FiMenu, FiX } from "react-icons/fi";
+import {
+  FiLogOut,
+  FiCompass,
+  FiLayers,
+  FiMenu,
+  FiX,
+  FiPieChart,
+} from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar() {
@@ -19,6 +26,7 @@ export default function Navbar() {
     if (path === "/") return pathname === "/";
     return pathname.startsWith(path);
   };
+  console.log(isActive);
 
   const activeLinkStyle =
     "text-brand-accent border-b-2 border-brand-accent font-bold pb-1";
@@ -49,6 +57,13 @@ export default function Navbar() {
                 <FiLayers /> Dashboard
               </Link>
 
+              <Link
+                href="/expenses"
+                className={`flex items-center gap-1 text-sm ${isActive("/expenses") ? activeLinkStyle : inactiveLinkStyle}`}
+              >
+                <FiPieChart /> Expenses
+              </Link>
+
               <div className="h-4 w-[1px] bg-brand-border" />
 
               <select
@@ -65,10 +80,14 @@ export default function Navbar() {
               {/* Laptop Profile Button */}
               <Link
                 href="/profile"
-                className={`flex items-center gap-2 px-4 py-1.5 bg-brand-bg/50 border border-brand-border rounded-full hover:bg-brand-bg hover:border-brand-accent transition-all ${isActive("/profile") ? "border-brand-accent shadow-sm" : ""}`}
+                className={`flex items-center gap-2 px-4 py-1.5 bg-brand-bg/50 border rounded-full hover:bg-brand-bg hover:border-brand-accent transition-all ${
+                  isActive("/profile")
+                    ? "border-brand-accent shadow-sm"
+                    : "border-brand-border"
+                }`}
               >
                 <span className="text-sm font-medium text-brand-text">
-                  Hello, {user.name.split(" ")[0]}
+                  {user.name.split(" ")[0]}
                 </span>
               </Link>
 
@@ -141,6 +160,14 @@ export default function Navbar() {
                     className={`flex items-center gap-2 text-sm w-max ${isActive("/dashboard") ? activeLinkStyle : inactiveLinkStyle}`}
                   >
                     <FiLayers /> Dashboard
+                  </Link>
+
+                  <Link
+                    href="/expenses"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center gap-2 text-sm w-max ${isActive("/expenses") ? activeLinkStyle : inactiveLinkStyle}`}
+                  >
+                    <FiPieChart /> Expenses
                   </Link>
 
                   <div className="flex flex-col gap-2">

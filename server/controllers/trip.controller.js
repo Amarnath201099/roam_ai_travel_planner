@@ -31,7 +31,16 @@ const pushToHistory = (trip, title) => {
  * @access  Private
  */
 const generateTrip = async (req, res, next) => {
-  const { destination, origin, days, budgetTier, interests } = req.body;
+  const {
+    destination,
+    origin,
+    days,
+    budgetTier,
+    interests,
+    startDate,
+    travelGroupType,
+    groupSize,
+  } = req.body;
 
   try {
     if (!destination || !days || !budgetTier) {
@@ -52,6 +61,9 @@ const generateTrip = async (req, res, next) => {
       days,
       budgetTier,
       interests,
+      startDate,
+      travelGroupType,
+      groupSize,
       user.travelPace,
       user.dietaryPreferences,
     );
@@ -66,8 +78,12 @@ const generateTrip = async (req, res, next) => {
       days,
       budgetTier,
       interests,
+      startDate, // NEW
+      travelGroupType, // NEW
+      groupSize,
       itinerary: aiData.itinerary,
       hotelSuggestions: aiData.hotelSuggestions,
+      packingList: aiData.packingList,
       estimatedBudget: aiData.estimatedBudget,
       actualExpenses: [],
     });
@@ -134,7 +150,15 @@ const getTripById = async (req, res, next) => {
  * @access  Private
  */
 const updateTrip = async (req, res, next) => {
-  const { destination, days, budgetTier, interests } = req.body;
+  const {
+    destination,
+    days,
+    budgetTier,
+    interests,
+    startDate,
+    travelGroupType,
+    groupSize,
+  } = req.body;
 
   try {
     const trip = await Trip.findById(req.params.id);
@@ -148,6 +172,9 @@ const updateTrip = async (req, res, next) => {
       days,
       budgetTier,
       interests,
+      startDate,
+      travelGroupType,
+      groupSize,
     );
     const aiData = await generateWithFallback(systemInstruction);
 
@@ -158,8 +185,12 @@ const updateTrip = async (req, res, next) => {
     trip.days = days;
     trip.budgetTier = budgetTier;
     trip.interests = interests;
+    trip.startDate = startDate; // NEW
+    trip.travelGroupType = travelGroupType; // NEW
+    trip.groupSize = groupSize;
     trip.itinerary = aiData.itinerary;
     trip.hotelSuggestions = aiData.hotelSuggestions;
+    trip.packingList = aiData.packingList;
     trip.estimatedBudget = aiData.estimatedBudget;
     // We intentionally leave actualExpenses untouched so real-world data isn't lost
 

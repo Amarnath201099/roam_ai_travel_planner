@@ -17,7 +17,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <CurrencyProvider>
             <Navbar />
-            <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8">
+            <main className="flex-1 w-full max-w-7xl mx-auto px-5 md:px-8 py-8">
               {children}
             </main>
           </CurrencyProvider>

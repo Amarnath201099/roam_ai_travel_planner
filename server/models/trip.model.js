@@ -19,11 +19,16 @@ const daySchema = new mongoose.Schema(
   { _id: true },
 );
 
-// NEW: Day-wise packing list schema
+//  Day-wise packing list schema
 const packingSchema = new mongoose.Schema(
   {
-    day: { type: Number, required: true },
-    items: [{ type: String }], // e.g., ["Comfortable walking shoes", "Sunscreen", "Camera"]
+    essentials: [{ type: String }],
+    dailySuggestions: [
+      {
+        day: Number,
+        items: [{ type: String }],
+      },
+    ],
   },
   { _id: false },
 );
@@ -48,9 +53,17 @@ const tripSchema = new mongoose.Schema(
     budgetTier: { type: String, required: true },
     interests: [{ type: String }],
 
+    startDate: { type: Date, required: true },
+    travelGroupType: {
+      type: String,
+      enum: ["Solo", "Couple", "Family", "Friends"],
+      default: "Solo",
+    },
+    groupSize: { type: Number, default: 1 },
+
     // Core AI Data
     itinerary: [daySchema],
-    packingList: [packingSchema], // NEW
+    packingList: packingSchema,
     hotelSuggestions: [hotelSchema], // EXPANDED
 
     estimatedBudget: {
@@ -61,10 +74,27 @@ const tripSchema = new mongoose.Schema(
       total: { type: Number, default: 0 },
     },
 
+    actualExpenses: [
+      {
+        category: {
+          type: String,
+          enum: ["Flights", "Accommodation", "Food", "Activities", "Other"],
+        },
+        description: { type: String },
+        amount: { type: Number, required: true },
+        dateAdded: { type: Date, default: Date.now },
+      },
+    ],
+
     // Tracking & Version Control
     isFinalized: { type: Boolean, default: false },
     versionHistory: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "TripVersion" },
+      {
+        versionId: { type: String, required: true },
+        title: { type: String, required: true },
+        savedAt: { type: Date, default: Date.now },
+        itineraryData: { type: Array, required: true }, // Deep copy snapshot of itinerary
+      },
     ],
   },
   { timestamps: true },

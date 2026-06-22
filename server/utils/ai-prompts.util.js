@@ -8,12 +8,17 @@ const getGenerateTripPrompt = (
   interests,
   travelPace,
   diet,
+  startDate,
+  travelGroupType,
+  groupSize,
 ) => `
   You are an expert, premium AI Travel Planner. Generate a highly detailed, structured travel itinerary.
   
   Trip Context:
   - Departure City (Origin): ${origin || "Not specified. Plan standard arrival."}
   - Destination: ${destination}
+  - Start Date: ${startDate}
+  - Group: ${travelGroupType} (${groupSize} people)
   - Duration: ${days} days
   - Budget: ${budgetTier}
   - Travel Pace: ${travelPace || "Moderate"}
@@ -22,9 +27,10 @@ const getGenerateTripPrompt = (
   
   CRITICAL INSTRUCTIONS:
   1. Respect the Travel Pace and Dietary Needs.
-  2. For activities, categorize them with 1-2 tags (e.g., "Historic", "Adventure", "Relaxation").
-  3. Create a day-by-day packing list specific to that day's planned activities.
+  2. For activities, categorize them with 1-2 tags (e.g., "Historic", "Nature", "Photography").
+  3. Generate a packing list with essentials for the overall trip season and dailySuggestions tailored to each day's activities and expected weather conditions based on the start date.
   4. Provide 3 hotel suggestions (Luxury, Standard, Budget) including ratings, dietary catering, and a 1-sentence description.
+  5. Calculate the estimatedBudget specifically for ${groupSize} people.
 
   You MUST return ONLY valid JSON matching exactly this schema:
   {
@@ -42,12 +48,7 @@ const getGenerateTripPrompt = (
         ]
       }
     ],
-    "packingList": [
-      {
-        "day": Number,
-        "items": ["String", "String"]
-      }
-    ],
+    "packingList": { "essentials": ["String"], "dailySuggestions": [{ "day": Number, "items": ["String"] }] },,
     "hotelSuggestions": [
       { 
         "name": "String", 
@@ -76,11 +77,16 @@ const getUpdateTripPrompt = (
   interests,
   travelPace,
   diet,
+  startDate,
+  travelGroupType,
+  groupSize,
 ) => `
   You are an expert AI Travel Planner updating an itinerary.
-  Departure City: ${origin || "Not specified"}. Destination: ${destination}. Duration: ${days} days.
-  Budget: ${budgetTier}. Pace: ${travelPace || "Moderate"}. Diet: ${diet && diet.length > 0 ? diet.join(", ") : "None"}.
-  Interests: ${interests && interests.length > 0 ? interests.join(", ") : "general"}.
+  - Destination: ${destination}
+  - Start Date: ${startDate}
+  - Group: ${travelGroupType} (${groupSize} people)
+  - Budget: ${budgetTier}
+  - Interests: ${interests && interests.length > 0 ? interests.join(", ") : "general"}
   
   Return ONLY valid JSON matching the exact schema below:
   {
@@ -92,7 +98,7 @@ const getUpdateTripPrompt = (
         ] 
       } 
     ],
-    "packingList": [ { "day": Number, "items": ["String"] } ],
+    "packingList": { "essentials": ["String"], "dailySuggestions": [{ "day": Number, "items": ["String"] }] },,
     "hotelSuggestions": [ { "name": "String", "tier": "String", "description": "String", "rating": "String", "dietaryOptions": "String", "specialDishes": ["String"] } ],
     "estimatedBudget": { "flights": Number, "accommodation": Number, "food": Number, "activities": Number, "total": Number }
   }
@@ -103,9 +109,9 @@ const getRegenerateDayPrompt = (trip, dayNumber, userPrompt) => `
   
   Overall Trip Context: 
   - Destination: ${trip.destination}
-  - Total Days: ${trip.days}
+  - Start Date: ${trip.startDate}
+  - Group: ${trip.travelGroupType} (${trip.groupSize} people)
   - Budget: ${trip.budgetTier}
-  - Interests: ${trip.interests.join(", ")}
   
   CRITICAL - CURRENT FULL ITINERARY:
   ${JSON.stringify(trip.itinerary)}
@@ -115,9 +121,9 @@ const getRegenerateDayPrompt = (trip, dayNumber, userPrompt) => `
   
   Strict Rules:
   1. DO NOT duplicate activities or locations that already exist on other days.
-  2. Ensure geographical and logistical flow makes sense with surrounding days.
+  2. Ensure the suggestions are appropriate for the group and local weather/season.
   
-  You MUST return ONLY valid JSON matching exactly this schema for this single day. DO NOT forget the title and tags properties:
+  You MUST return ONLY valid JSON matching exactly this schema for this single day:
   {
     "day": ${dayNumber},
     "activities": [
@@ -137,9 +143,8 @@ const getMergeVersionsPrompt = (trip, contexts, userPrompt) => `
   
   Trip Constraints:
   - Destination: ${trip.destination}
+  - Group: ${trip.travelGroupType} (${trip.groupSize} people)
   - Strict Total Days Allowed: ${trip.days}
-  
-  The user is supplying multiple versions of their itinerary (Contexts) and a specific prompt on how to combine them.
   
   User Prompt: "${userPrompt}"
   
@@ -148,12 +153,10 @@ const getMergeVersionsPrompt = (trip, contexts, userPrompt) => `
   ${contexts[2] ? `Version C: ${JSON.stringify(contexts[2])}` : ""}
   
   Strict Rules:
-  1. Analyze the contexts and apply the user's logic to combine them.
+  1. Combine versions while respecting the group size and travel constraints.
   2. PREVENT duplicate activities across the final generated itinerary.
-  3. The final output MUST contain exactly ${trip.days} day objects.
-  4. The "day" property in the output MUST be numbered sequentially starting from 1 up to ${trip.days}.
   
-  You MUST return ONLY valid JSON matching exactly this schema. Ensure every activity retains its title and tags:
+  You MUST return ONLY valid JSON matching exactly this schema:
   [
     { 
       "day": Number, 

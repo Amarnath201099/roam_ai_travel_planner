@@ -102,14 +102,12 @@ const logoutUser = (req, res) => {
 const getUserProfile = async (req, res, next) => {
   try {
     // req.user state context is guaranteed populated by the protect middleware layer
-    const user = await User.findById(req.user._id);
+    // Use .select('-password') to exclude the password field at the database level
+    const user = await User.findById(req.user._id).select("-password");
 
     if (user) {
-      res.status(200).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-      });
+      // Send back the entire user object (minus the password)
+      res.status(200).json(user);
     } else {
       res.status(404);
       throw new Error("User entity context not found");
