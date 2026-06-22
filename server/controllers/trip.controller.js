@@ -1,3 +1,4 @@
+const User = require("../models/user.model.js");
 const Trip = require("../models/trip.model.js");
 const { generateWithFallback } = require("../utils/ai.util.js");
 const {
@@ -30,7 +31,7 @@ const pushToHistory = (trip, title) => {
  * @access  Private
  */
 const generateTrip = async (req, res, next) => {
-  const { destination, days, budgetTier, interests } = req.body;
+  const { destination, origin, days, budgetTier, interests } = req.body;
 
   try {
     if (!destination || !days || !budgetTier) {
@@ -38,12 +39,21 @@ const generateTrip = async (req, res, next) => {
       throw new Error("Destination, days, and budget tier are required");
     }
 
+    // Fetch the user's profile to grab their background settings
+    const user = await User.findById(req.user._id);
+
+    // If the user typed a specific origin in the form, use it. Otherwise, default to their saved Home Location.
+    const finalOrigin = origin || user.homeLocation;
+
     // Fetch the raw prompt string from our decoupled library
     const systemInstruction = getGenerateTripPrompt(
       destination,
+      finalOrigin,
       days,
       budgetTier,
       interests,
+      user.travelPace,
+      user.dietaryPreferences,
     );
 
     // Call our robust retry wrapper. If it fails 3 times, it throws "AI_CAPACITY_ERROR"

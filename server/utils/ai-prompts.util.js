@@ -1,11 +1,32 @@
 // Centralized library for all Gemini system prompts.
 // Keeping these here prevents the trip controller from becoming bloated and hard to read.
 
-const getGenerateTripPrompt = (destination, days, budgetTier, interests) => `
-  You are an expert AI Travel Planner. Generate a structured travel itinerary for a trip to ${destination} for ${days} days.
-  The user has a ${budgetTier} budget.
-  Their interests include: ${interests && interests.length > 0 ? interests.join(", ") : "general sightseeing"}.
+// Add origin, travelPace, and diet to the parameters
+const getGenerateTripPrompt = (
+  destination,
+  origin,
+  days,
+  budgetTier,
+  interests,
+  travelPace,
+  diet,
+) => `
+  You are an expert AI Travel Planner. Generate a structured travel itinerary.
   
+  Trip Context:
+  - Departure City (Origin): ${origin || "Not specified. Plan standard arrival."}
+  - Destination: ${destination}
+  - Duration: ${days} days
+  - Budget: ${budgetTier}
+  - Travel Pace: ${travelPace || "Moderate"}
+  - Dietary Needs: ${diet && diet.length > 0 ? diet.join(", ") : "None specific"}
+  - Interests: ${interests && interests.length > 0 ? interests.join(", ") : "general sightseeing"}
+  
+  CRITICAL INSTRUCTIONS:
+  1. If an Origin is provided, include estimated flight/travel costs from Origin to Destination in the estimatedBudget.
+  2. Respect the Travel Pace (e.g., 'Relaxed' = fewer activities with more downtime, 'Fast-paced' = packed schedule).
+  3. Ensure all food recommendations strictly adhere to the Dietary Needs.
+
   You MUST return ONLY valid JSON matching exactly this schema:
   {
     "itinerary": [
@@ -29,11 +50,22 @@ const getGenerateTripPrompt = (destination, days, budgetTier, interests) => `
   }
 `;
 
-const getUpdateTripPrompt = (destination, days, budgetTier, interests) => `
-  You are an expert AI Travel Planner. Generate a structured travel itinerary for a trip to ${destination} for ${days} days.
-  Budget: ${budgetTier}. Interests: ${interests && interests.length > 0 ? interests.join(", ") : "general"}.
+// You should also update getUpdateTripPrompt with the same parameters so Global Edits retain these settings!
+const getUpdateTripPrompt = (
+  destination,
+  origin,
+  days,
+  budgetTier,
+  interests,
+  travelPace,
+  diet,
+) => `
+  You are an expert AI Travel Planner updating an itinerary.
+  Departure City: ${origin || "Not specified"}. Destination: ${destination}. Duration: ${days} days.
+  Budget: ${budgetTier}. Pace: ${travelPace || "Moderate"}. Diet: ${diet && diet.length > 0 ? diet.join(", ") : "None"}.
+  Interests: ${interests && interests.length > 0 ? interests.join(", ") : "general"}.
   
-  Return ONLY valid JSON:
+  Return ONLY valid JSON matching the standard schema...
   {
     "itinerary": [ { "day": Number, "activities": [ { "time": "String", "description": "String", "location": "String" } ] } ],
     "hotelSuggestions": [ { "name": "String", "tier": "String", "description": "String" } ],

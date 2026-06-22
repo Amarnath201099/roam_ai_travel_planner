@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import API from "../../utils/api";
 import { FiPlus, FiMapPin, FiCalendar, FiDollarSign } from "react-icons/fi";
 import { motion } from "framer-motion";
+import NewTripModal from "../../components/NewTripModal"; // Import the new modal
 
 export default function DashboardPage() {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
+
+  // State to control the New Trip Modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchTrips = async () => {
@@ -35,7 +37,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-brand-text">
@@ -45,12 +47,13 @@ export default function DashboardPage() {
             Manage and view your AI-generated itineraries.
           </p>
         </div>
-        <Link
-          href="/dashboard/new"
+        {/* Changed from Link to a Button to open the Modal */}
+        <button
+          onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 bg-brand-accent text-white px-6 py-3 rounded-xl font-semibold hover:bg-brand-hover transition-colors shadow-sm w-full md:w-auto justify-center"
         >
           <FiPlus className="text-xl" /> Plan New Trip
-        </Link>
+        </button>
       </div>
 
       {trips.length === 0 ? (
@@ -62,6 +65,13 @@ export default function DashboardPage() {
           <p className="text-brand-muted">
             Let AI craft your perfect getaway in seconds.
           </p>
+          {/* Helpful call to action if empty */}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="mt-4 text-brand-accent font-bold hover:underline"
+          >
+            Click here to start
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -96,6 +106,12 @@ export default function DashboardPage() {
           ))}
         </div>
       )}
+
+      {/* Render the Modal */}
+      <NewTripModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }

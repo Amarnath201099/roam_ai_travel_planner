@@ -119,9 +119,79 @@ const getUserProfile = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Update user profile data (Name, Location, Diet, etc.)
+ * @route   PUT /api/auth/profile
+ * @access  Private
+ */
+const updateUserProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.homeLocation =
+        req.body.homeLocation !== undefined
+          ? req.body.homeLocation
+          : user.homeLocation;
+      user.dietaryPreferences =
+        req.body.dietaryPreferences || user.dietaryPreferences;
+      user.travelPace = req.body.travelPace || user.travelPace;
+      user.preferredCurrency =
+        req.body.preferredCurrency || user.preferredCurrency;
+
+      const updatedUser = await user.save();
+
+      res.status(200).json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        homeLocation: updatedUser.homeLocation,
+        dietaryPreferences: updatedUser.dietaryPreferences,
+        travelPace: updatedUser.travelPace,
+        preferredCurrency: updatedUser.preferredCurrency,
+      });
+    } else {
+      res.status(404);
+      throw new Error("User not found");
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Securely update user password
+ * @route   PUT /api/auth/password
+ * @access  Private
+ */
+const updateUserPassword = async (req, res, next) => {
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    const user = await User.findById(req.user._id);
+
+    // Verify the user exists and the current password matches
+    if (user && (await user.matchPassword(currentPassword))) {
+      // The Mongoose pre-save middleware will automatically hash this new password
+      user.password = newPassword;
+      await user.save();
+
+      res.status(200).json({ message: "Password updated successfully" });
+    } else {
+      res.status(401);
+      throw new Error("Invalid current password");
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
   getUserProfile,
+  updateUserProfile,
+  updateUserPassword,
 };
