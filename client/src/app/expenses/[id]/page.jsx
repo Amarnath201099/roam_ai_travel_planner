@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import API from "../../../utils/api";
 import FinancialAnalysisPage from "../../../components/FinancialAnalysisPage"; // The component from the previous step
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function TripExpenseView() {
   const params = useParams();
@@ -27,20 +28,28 @@ export default function TripExpenseView() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-      </div>
+      <ProtectedRoute>
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+        </div>
+      </ProtectedRoute>
     );
   }
 
   if (!trip) {
     return (
-      <div className="text-center py-20 text-red-500">
-        Trip data could not be loaded.
-      </div>
+      <ProtectedRoute>
+        <div className="text-center py-20 text-red-500">
+          Trip data could not be loaded.
+        </div>
+      </ProtectedRoute>
     );
   }
 
   // Render the highly detailed visual component
-  return <FinancialAnalysisPage trip={trip} />;
+  return (
+    <ProtectedRoute>
+      <FinancialAnalysisPage trip={trip} />
+    </ProtectedRoute>
+  );
 }

@@ -9,21 +9,14 @@ RoamAI is a full-stack, multi-user web application that generates highly persona
 - **Frontend:** Next.js (App Router), React, Tailwind CSS, Framer Motion
 - **Backend:** Node.js, Express.js
 - **Database:** MongoDB (Mongoose)
-- **AI Integration:** Google Gemini API (gemini-1.5-flash)
+- **AI Integration:** Google Gemini API (gemini-2.5-flash)
 - **Authentication:** JSON Web Tokens (JWT), bcryptjs
-
-### Justification
-
-The preferred stack suggested a unified Next.js application, but a strictly decoupled architecture (Next.js Client + Express.js Backend) was chosen for this deployment.
-
-1. **Separation of Concerns:** Isolating the business logic, AI prompt engineering, and database aggregation inside a dedicated Express server allows for a highly robust, scalable backend.
-2. **Predictability:** Leveraging standard REST patterns ensures stable database transactions and predictable state management, while allowing Next.js to be utilized purely for what it excels at: delivering a fast, responsive, and highly interactive user interface.
 
 ## Setup Instructions
 
 ### Local Setup
 
-1. Clone the repository: `git clone <repository-url>`
+1. Clone the repository: `git clone https://github.com/Amarnath201099/roam_ai_travel_planner.git`
 2. Open two terminal windows (one for the backend, one for the frontend).
 
 **Backend (`/server`)**
@@ -67,7 +60,7 @@ The system operates on a decoupled client-server model:
 
 ## AI Design
 
-The application utilizes Google's `gemini-1.5-flash` model.
+The application utilizes Google's `gemini-2.5-flash` model.
 
 - **Design Purpose:** The LLM acts as a high-speed data aggregator and formatting agent.
 - **Prompt Engineering Strategy:** To ensure system stability, the AI is constrained using a highly specific system instruction and Gemini's native `application/json` response MIME type. This guarantees the LLM returns an exact, deeply nested JSON data contract (arrays of daily activities, categorized budget breakdowns, and hotel arrays) that cleanly maps to the strict Mongoose schema without requiring complex string parsing or regex on the backend.
@@ -88,4 +81,4 @@ The application utilizes Google's `gemini-1.5-flash` model.
 
 1. **Real-time Pricing:** The AI estimates budgets based on historical training data. It does not hit live airline or hotel APIs, so prices are approximations, not live quotes.
 2. **Strict Routing:** Highly obscure or extremely niche local spots might result in AI hallucinations or generic recommendations due to model limitations on hyper-local data.
-3. **Session Management:** Token revocation (forcing a logout across all devices) is currently limited due to the stateless nature of JWTs, though an expiration window of 30 days mitigates long-term risk.
+3. **Session Management:** Token revocation (forcing a logout across all devices) is currently limited due to the stateless nature of JWTs, though an expiration window of 7 days mitigates long-term risk.

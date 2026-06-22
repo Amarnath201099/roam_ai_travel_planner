@@ -10,11 +10,22 @@ connectDB();
 
 const app = express();
 
+// This tells Express to trust the proxy (Render's load balancer)
+// to correctly identify the protocol as HTTPS, which is required
+// for cookies with 'secure: true' and 'sameSite: "none"'.
+app.set("trust proxy", 1);
+// ---------------------
+
 // Middleware
 // MUST explicitly define origin and credentials for cookies to work cross-origin
+// Parse the environment variable into an array, falling back to localhost
+const allowedOrigins = process.env.CLIENT_URLS
+  ? process.env.CLIENT_URLS.split(",").map((url) => url.trim())
+  : ["http://localhost:3000"];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
