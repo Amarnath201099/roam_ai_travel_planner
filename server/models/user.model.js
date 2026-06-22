@@ -21,9 +21,10 @@ const userSchema = new mongoose.Schema(
 );
 
 // Hash password automatically before document persistence
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
+  // If the password hasn't been modified, just exit the function
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

@@ -3,14 +3,16 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FiX, FiMapPin, FiBriefcase } from "react-icons/fi";
+import { useAuth } from "../context/AuthContext";
 import API from "../utils/api";
 
 export default function NewTripModal({ isOpen, onClose }) {
   const router = useRouter();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     destination: "",
-    origin: "", // New origin field
+    origin: user?.homeLocation || "",
     days: 3,
     budgetTier: "Medium",
     interests: "",
