@@ -11,6 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  console.log(user);
   useEffect(() => {
     // Rehydrate authentication state by checking if the httpOnly cookie is valid
     const checkUserSession = async () => {

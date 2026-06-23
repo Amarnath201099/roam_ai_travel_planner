@@ -26,7 +26,7 @@ export default function Navbar() {
     if (path === "/") return pathname === "/";
     return pathname.startsWith(path);
   };
-  // console.log(isActive);
+  // console.log(isLoggedIn);
 
   const activeLinkStyle =
     "text-brand-accent border-b-2 border-brand-accent font-bold pb-1";
@@ -118,7 +118,7 @@ export default function Navbar() {
 
         {/* --- MOBILE VIEW (TOP BAR) --- */}
         <div className="flex md:hidden items-center gap-4">
-          {user && !loading && (
+          {isLoggedIn && !loading && (
             <Link
               href="/profile"
               className={`flex items-center justify-center w-8 h-8 rounded-full bg-brand-bg/80 border ${isActive("/profile") ? "border-brand-accent text-brand-accent" : "border-brand-border text-brand-text"} font-bold text-sm shadow-sm`}
@@ -152,7 +152,7 @@ export default function Navbar() {
             <div className="flex flex-col px-6 py-4 space-y-4">
               {loading ? (
                 <div className="h-8 w-24 bg-brand-border animate-pulse rounded-lg"></div>
-              ) : user ? (
+              ) : isLoggedIn ? (
                 <>
                   <Link
                     href="/dashboard"
