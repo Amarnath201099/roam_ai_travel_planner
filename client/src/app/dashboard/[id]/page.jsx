@@ -61,7 +61,9 @@ export default function TripViewPage() {
     groupSize: 1,
   });
 
-  console.log(trip);
+  const [showFinalizeModal, setShowFinalizeModal] = useState(false);
+
+  // console.log(trip);
 
   // Sync form data when trip loads
   useEffect(() => {
@@ -115,13 +117,12 @@ export default function TripViewPage() {
     setIsProcessing(false);
   };
 
-  const handleFinalize = async () => {
-    if (
-      !window.confirm(
-        "Finishing planning will clear your version history to save space. Proceed?",
-      )
-    )
-      return;
+  const handleFinalize = () => {
+    setShowFinalizeModal(true);
+  };
+
+  const confirmFinalize = async () => {
+    setShowFinalizeModal(false);
     await actions.versionControl("FINALIZE");
   };
 
@@ -356,6 +357,37 @@ export default function TripViewPage() {
             setWarningModal({ isOpen: false, title: "", message: "" })
           }
         />
+
+        {showFinalizeModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-2xl border border-gray-200">
+              <h2 className="text-lg font-bold text-gray-900 mb-2">
+                Finalize Trip?
+              </h2>
+
+              <p className="text-sm text-gray-600 mb-6">
+                Finishing planning will clear your version history to save
+                space. This action cannot be undone.
+              </p>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowFinalizeModal(false)}
+                  className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 transition"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={confirmFinalize}
+                  className="px-5 py-2 text-sm bg-black text-white rounded-lg hover:bg-gray-800 transition font-semibold"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   );

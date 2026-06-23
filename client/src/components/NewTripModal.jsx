@@ -175,9 +175,11 @@ export default function NewTripModal({ isOpen, onClose }) {
                 Start Date
               </label>
               <DatePicker
-                selected={formData.startDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, startDate: e.target.value })
+                selected={
+                  formData.startDate ? new Date(formData.startDate) : new Date()
+                }
+                onChange={(date) =>
+                  setFormData({ ...formData, startDate: date })
                 }
                 className="w-full px-3 py-2 border border-brand-border rounded-lg outline-none focus:border-brand-accent transition-colors"
                 wrapperClassName="w-full"
