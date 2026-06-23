@@ -15,14 +15,14 @@ const generateWithFallback = async (systemInstruction) => {
 
   try {
     // Attempt 1: Standard 2.5 Flash
-    return await attemptGeneration("gemini-2.5-flash");
+    return await attemptGeneration("gemini-3.1-flash-lite");
   } catch (error1) {
     console.warn("Attempt 1 failed:", error1.message);
     await delay(1500); // Wait 1.5 seconds before retrying
 
     try {
       // Attempt 2: Standard 2.5 Flash again
-      return await attemptGeneration("gemini-2.5-flash");
+      return await attemptGeneration("gemini-3.1-flash-lite");
     } catch (error2) {
       console.warn("Attempt 2 failed:", error2.message);
       await delay(1500);
