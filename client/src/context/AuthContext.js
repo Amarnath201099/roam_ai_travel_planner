@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
         // Our API interceptor automatically sends the cookie with this request
         const { data } = await API.get("/auth/profile");
         // UPDATE: Store the complete user object instead of just name and email
-        setUser(data);
+        setUser(data?._id ? data : null);
       } catch (error) {
         // If it fails (e.g., 401 Unauthorized, cookie expired or missing), we remain unauthenticated
         setUser(null);

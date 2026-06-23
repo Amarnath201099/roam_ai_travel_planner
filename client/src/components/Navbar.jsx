@@ -20,13 +20,13 @@ export default function Navbar() {
   const { currency, changeCurrency } = useCurrency();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+  const isLoggedIn = !!user?._id;
   // Helper to determine if a link is active for the thin underline styling
   const isActive = (path) => {
     if (path === "/") return pathname === "/";
     return pathname.startsWith(path);
   };
-  console.log(isActive);
+  // console.log(isActive);
 
   const activeLinkStyle =
     "text-brand-accent border-b-2 border-brand-accent font-bold pb-1";
@@ -48,7 +48,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-6">
           {loading ? (
             <div className="h-8 w-24 bg-brand-border animate-pulse rounded-lg"></div>
-          ) : user ? (
+          ) : isLoggedIn ? (
             <>
               <Link
                 href="/dashboard"
