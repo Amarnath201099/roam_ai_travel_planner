@@ -28,6 +28,8 @@ RoamAI is a full-stack, multi-user web application that generates highly persona
    - `MONGO_URI=<your_mongodb_connection_string>`
    - `JWT_SECRET=<your_secure_secret>`
    - `GEMINI_API_KEY=<your_google_gemini_key>`
+   - `NODE_ENV`
+   - `CLIENT_URLS`
 4. `npm run dev` (or `node index.js`)
 
 **Frontend (`/client`)**
@@ -67,40 +69,125 @@ The application utilizes Google's `gemini-2.5-flash` model.
 
 ## Custom / Creative Features
 
-### 1. Dynamic Expense Tracker
+## 1. Dynamic Expense Tracker
 
-**What it is:**
-An interactive budget tracking interface nested inside the generated trip view. It allows users to log real-world expenses (e.g., food, flights, activities) directly against the AI's initial budget estimations.
+### What it is
 
-**Problem Solved:**
-Traditional travel planners generate a budget but fail to provide a way to monitor real-time adherence. This feature bridges the gap between planning and execution.
+An interactive budget tracking interface embedded directly within the generated trip view. Users can log real-world expenses (e.g., food, transportation, accommodation, activities, shopping) against the AI-generated budget estimates throughout the trip.
 
-**Engineering Judgment:**
-Instead of just a simple list, it calculates spending velocity in real-time. It features a dynamic progress bar that provides immediate visual feedback, changing to a warning state (amber/red) if the user approaches or breaches the AI's predicted financial ceiling.
+### Problem Solved
+
+Traditional travel planners generate a budget but provide no mechanism to track actual spending during the journey. This creates a disconnect between planning and execution. The Dynamic Expense Tracker closes that gap by allowing users to monitor spending in real time and stay aligned with their financial goals.
+
+### Engineering Logic
+
+- Users can categorize expenses and compare actual costs against estimated budgets.
+- Real-time calculations continuously update remaining budget and category-wise spending.
+- Spending velocity analysis predicts whether users are likely to exceed their planned budget based on current expenditure patterns.
+- A dynamic progress bar provides immediate visual feedback:
+  - **Green:** Within safe spending range.
+  - **Amber:** Approaching budget limit.
+  - **Red:** Budget exceeded or projected to exceed.
+
+### Engineering Judgment
+
+Rather than functioning as a simple expense log, the tracker actively assists decision-making through predictive budget monitoring. This transforms budgeting from a static planning exercise into a proactive financial management tool.
 
 ---
 
-### 2. Context-Aware Smart Packing List
+## 2. Version History, Restore & AI Merge Engine
 
-**What it is:**
-An intelligent, modular packing assistant that evolves based on the user's specific trip parameters rather than providing a generic, static checklist.
+### What it is
 
-**Problem Solved:**
-Generic packing lists are often overwhelming and irrelevant. Users frequently forget destination-specific items (e.g., adapters, temple-appropriate clothing) or overlook weather-based needs.
+A robust itinerary version control system that enables non-destructive editing, instant restoration of previous itinerary states, and AI-powered merging of multiple planning iterations.
 
-**Engineering Logic:**
-The packing list is split into two distinct tiers:
+### Problem Solved
 
-#### Trip Essentials
+Trip planning is highly iterative. Users frequently experiment with different schedules, destinations, or activities and often worry about losing earlier ideas. This feature provides a safety net by preserving recent versions, allowing users to restore any previous itinerary state or intelligently combine multiple versions.
 
-Core items (documents, adapters, travel necessities) derived from destination, trip duration, and group size.
+### Engineering Logic
 
-#### Daily Gear
+#### FIFO History Buffer
 
-A day-by-day mapping system that correlates the AI-generated itinerary activities with the required equipment. For example, if the itinerary contains a **Mountain Trek** on Day 2, the packing list dynamically injects hiking boots, thermal wear, and other relevant gear into the Day 2 packing bucket.
+- The system maintains a strict FIFO (First-In-First-Out) queue containing the most recent **5 itinerary versions**.
+- Every meaningful modification creates a new snapshot of the itinerary state.
 
-**Engineering Judgment:**
-This feature transforms packing from a disconnected checklist into a contextual extension of itinerary planning. By tailoring recommendations to destinations and daily activities, it increases user engagement, reduces packing mistakes, and improves the overall utility of the travel planning experience.
+#### Restore Mechanism
+
+- Each saved version includes a dedicated **Restore** action.
+- Users can instantly revert the itinerary to any previously saved version without affecting other historical snapshots.
+- Restoration can be performed at:
+  - Entire trip level.
+  - Individual day level (e.g., restore Day 2 from an earlier version while keeping the rest of the itinerary unchanged).
+- Restored versions are treated as new active states and re-enter the history pipeline for future edits.
+
+#### AI Merge Intelligence
+
+- Users can select two versions or individual day plans and request an AI-generated merge.
+- The AI analyzes activities, timings, and dependencies from both versions.
+- Conflicting events are resolved while maintaining chronological consistency.
+- The merged result becomes a new version in the history stack.
+
+#### State Management
+
+- Historical snapshots remain available throughout the planning phase.
+- Once the itinerary is finalized (`isFinalized: true`), the history buffer is flushed to minimize storage overhead and clearly indicate completion of the planning lifecycle.
+
+### Engineering Judgment
+
+The combination of version history, granular restore capabilities, and AI-assisted merging creates a workflow similar to modern source-control systems. This significantly reduces user anxiety during experimentation, encourages exploration of alternative plans, and ensures that valuable itinerary ideas are never permanently lost.
+
+---
+
+## 3. Context-Aware Smart Packing List
+
+### What it is
+
+An intelligent, modular packing assistant that dynamically adapts to the user's destination, weather conditions, travel group, trip duration, and planned activities instead of relying on generic checklists.
+
+### Problem Solved
+
+Traditional packing lists are often cluttered with irrelevant recommendations and fail to account for destination-specific requirements. Travelers frequently forget important items related to weather, activities, or local conditions.
+
+### Engineering Logic
+
+#### Trip Essentials Layer
+
+Core recommendations generated from:
+
+- Destination characteristics.
+- Expected weather conditions.
+- Trip duration.
+- Group size and traveler profile.
+- Transportation mode.
+
+Examples:
+
+- Travel documents.
+- Chargers and electronics.
+- Weather-appropriate clothing.
+- Personal essentials.
+
+#### Daily Gear Layer
+
+A day-by-day packing assistant linked directly to itinerary activities.
+
+Examples:
+
+- Hiking day → Trekking shoes, hydration pack.
+- Beach day → Swimwear, sunscreen, towel.
+- City exploration → Comfortable walking shoes, power bank.
+- Photography excursion → Camera gear, spare batteries.
+
+#### Dynamic Updates
+
+- Changes in itinerary automatically update packing recommendations.
+- Activity additions or removals trigger recalculation of required items.
+- Weather-based adjustments can introduce new recommendations closer to departure.
+
+### Engineering Judgment
+
+By connecting packing recommendations directly to itinerary activities, the system transforms packing into a contextual and personalized experience. This improves practicality, reduces forgotten essentials, and increases overall engagement with the travel planning workflow.
 
 ## Engineering Decisions
 
