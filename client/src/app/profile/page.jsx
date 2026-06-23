@@ -9,6 +9,8 @@ import {
   FiShield,
   FiEdit2,
   FiX,
+  FiEye,
+  FiEyeOff,
 } from "react-icons/fi";
 import API from "../../utils/api";
 import WarningModal from "../../components/WarningModal";
@@ -42,11 +44,24 @@ export default function ProfilePage() {
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
 
+  const [showPassword, setShowPassword] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
+
   const [warningModal, setWarningModal] = useState({
     isOpen: false,
     title: "",
     message: "",
   });
+
+  const togglePassword = (field) => {
+    setShowPassword((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
 
   useEffect(() => {
     if (user) {
@@ -378,18 +393,28 @@ export default function ProfilePage() {
                 <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
                   Current Password
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={passwordData.currentPassword}
-                  onChange={(e) =>
-                    setPasswordData({
-                      ...passwordData,
-                      currentPassword: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-2 border border-brand-border rounded-lg outline-none focus:border-brand-accent transition-colors bg-white"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword.current ? "text" : "password"}
+                    required
+                    value={passwordData.currentPassword}
+                    onChange={(e) =>
+                      setPasswordData({
+                        ...passwordData,
+                        currentPassword: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-brand-border rounded-lg outline-none focus:border-brand-accent transition-colors bg-white pr-12"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => togglePassword("current")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-800"
+                  >
+                    {showPassword.current ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </div>
               </div>
 
               <hr className="border-brand-border my-4" />
@@ -398,36 +423,56 @@ export default function ProfilePage() {
                 <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
                   New Password
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={passwordData.newPassword}
-                  onChange={(e) =>
-                    setPasswordData({
-                      ...passwordData,
-                      newPassword: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-2 border border-brand-border rounded-lg outline-none focus:border-brand-accent transition-colors bg-white"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword.new ? "text" : "password"}
+                    required
+                    value={passwordData.newPassword}
+                    onChange={(e) =>
+                      setPasswordData({
+                        ...passwordData,
+                        newPassword: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-brand-border rounded-lg outline-none focus:border-brand-accent transition-colors bg-white pr-12"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => togglePassword("new")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-800"
+                  >
+                    {showPassword.new ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
                   Confirm New Password
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={passwordData.confirmPassword}
-                  onChange={(e) =>
-                    setPasswordData({
-                      ...passwordData,
-                      confirmPassword: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-2 border border-brand-border rounded-lg outline-none focus:border-brand-accent transition-colors bg-white"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword.confirm ? "text" : "password"}
+                    required
+                    value={passwordData.confirmPassword}
+                    onChange={(e) =>
+                      setPasswordData({
+                        ...passwordData,
+                        confirmPassword: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-brand-border rounded-lg outline-none focus:border-brand-accent transition-colors bg-white pr-12"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => togglePassword("confirm")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-800"
+                  >
+                    {showPassword.confirm ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </div>
               </div>
 
               <div className="pt-4 flex items-center justify-between">
