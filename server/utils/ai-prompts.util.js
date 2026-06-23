@@ -75,8 +75,6 @@ const getUpdateTripPrompt = (
   days,
   budgetTier,
   interests,
-  travelPace,
-  diet,
   startDate,
   travelGroupType,
   groupSize,

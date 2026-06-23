@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { FiAlertTriangle } from "react-icons/fi";
 
 export default function GlobalEditModal({
@@ -8,6 +11,16 @@ export default function GlobalEditModal({
   formData,
   setFormData,
 }) {
+  useEffect(() => {
+    if (formData.groupType === "Solo") {
+      setFormData((prev) => ({ ...prev, groupSize: 1 }));
+    }
+
+    if (formData.groupType === "Couple") {
+      setFormData((prev) => ({ ...prev, groupSize: 2 }));
+    }
+  }, [formData.groupType]);
+
   if (!isOpen) return null;
 
   return (
@@ -22,19 +35,38 @@ export default function GlobalEditModal({
         </p>
 
         <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
-              Destination
-            </label>
-            <input
-              type="text"
-              value={formData.destination}
-              onChange={(e) =>
-                setFormData({ ...formData, destination: e.target.value })
-              }
-              className="w-full px-3 py-2 border rounded-lg outline-none"
-            />
+          {/* Row 1 */}
+          <div className="flex gap-4">
+            <div className="w-1/2">
+              <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
+                Flying From
+              </label>
+              <input
+                type="text"
+                value={formData.origin || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, origin: e.target.value })
+                }
+                className="w-full px-3 py-2 border rounded-lg outline-none"
+              />
+            </div>
+
+            <div className="w-1/2">
+              <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
+                Destination
+              </label>
+              <input
+                type="text"
+                value={formData.destination}
+                onChange={(e) =>
+                  setFormData({ ...formData, destination: e.target.value })
+                }
+                className="w-full px-3 py-2 border rounded-lg outline-none"
+              />
+            </div>
           </div>
+
+          {/* Row 2 */}
           <div className="flex gap-4">
             <div className="w-1/2">
               <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
@@ -45,11 +77,15 @@ export default function GlobalEditModal({
                 min="1"
                 value={formData.days}
                 onChange={(e) =>
-                  setFormData({ ...formData, days: Number(e.target.value) })
+                  setFormData({
+                    ...formData,
+                    days: Number(e.target.value),
+                  })
                 }
                 className="w-full px-3 py-2 border rounded-lg outline-none"
               />
             </div>
+
             <div className="w-1/2">
               <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
                 Budget
@@ -57,7 +93,10 @@ export default function GlobalEditModal({
               <select
                 value={formData.budgetTier}
                 onChange={(e) =>
-                  setFormData({ ...formData, budgetTier: e.target.value })
+                  setFormData({
+                    ...formData,
+                    budgetTier: e.target.value,
+                  })
                 }
                 className="w-full px-3 py-2 border rounded-lg outline-none bg-white"
               >
@@ -66,6 +105,106 @@ export default function GlobalEditModal({
                 <option value="High">High</option>
               </select>
             </div>
+          </div>
+
+          {/* Row 3 */}
+          <div className="flex gap-4">
+            <div className="w-1/2">
+              <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
+                Start Date
+              </label>
+
+              <DatePicker
+                selected={
+                  formData.startDate ? new Date(formData.startDate) : new Date()
+                }
+                onChange={(date) =>
+                  setFormData({
+                    ...formData,
+                    startDate: date,
+                  })
+                }
+                className="w-full px-3 py-2 border rounded-lg outline-none"
+                wrapperClassName="w-full"
+                dateFormat="MMM d, yyyy"
+              />
+            </div>
+
+            <div className="w-1/2">
+              <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
+                Travel With
+              </label>
+
+              <select
+                value={formData.groupType || "Solo"}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    groupType: e.target.value,
+                  })
+                }
+                className="w-full px-3 py-2 border rounded-lg outline-none bg-white"
+              >
+                <option value="Solo">Solo</option>
+                <option value="Couple">Couple</option>
+                <option value="Family">Family</option>
+                <option value="Friends">Friends</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Row 4 */}
+          <div className="flex gap-4">
+            <div className="w-1/2">
+              <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
+                Group Size
+              </label>
+
+              <input
+                type="number"
+                min="1"
+                max="20"
+                disabled={
+                  formData.groupType === "Solo" ||
+                  formData.groupType === "Couple"
+                }
+                value={formData.groupSize || 1}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    groupSize: Number(e.target.value),
+                  })
+                }
+                className={`w-full px-3 py-2 border rounded-lg outline-none ${
+                  formData.groupType === "Solo" ||
+                  formData.groupType === "Couple"
+                    ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+                    : ""
+                }`}
+              />
+            </div>
+
+            <div className="w-1/2" />
+          </div>
+
+          {/* Row 5 */}
+          <div>
+            <label className="block text-xs font-bold text-brand-muted uppercase mb-1">
+              Interests
+            </label>
+
+            <input
+              type="text"
+              value={formData.interests || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  interests: e.target.value,
+                })
+              }
+              placeholder="Museums, Hiking, Food"
+              className="w-full px-3 py-2 border rounded-lg outline-none"
+            />
           </div>
         </div>
 

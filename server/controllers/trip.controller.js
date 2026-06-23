@@ -152,6 +152,7 @@ const getTripById = async (req, res, next) => {
 const updateTrip = async (req, res, next) => {
   const {
     destination,
+    origin,
     days,
     budgetTier,
     interests,
@@ -159,6 +160,8 @@ const updateTrip = async (req, res, next) => {
     travelGroupType,
     groupSize,
   } = req.body;
+
+  // console.log(req.body);
 
   try {
     const trip = await Trip.findById(req.params.id);
@@ -169,6 +172,7 @@ const updateTrip = async (req, res, next) => {
 
     const systemInstruction = getUpdateTripPrompt(
       destination,
+      origin,
       days,
       budgetTier,
       interests,

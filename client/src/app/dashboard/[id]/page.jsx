@@ -52,20 +52,35 @@ export default function TripViewPage() {
   const [showGlobalEdit, setShowGlobalEdit] = useState(false);
   const [editFormData, setEditFormData] = useState({
     destination: "",
+    origin: "",
     days: 3,
     budgetTier: "Medium",
-    interests: [],
+    interests: "",
+    startDate: new Date(),
+    groupType: "Solo",
+    groupSize: 1,
   });
+
+  console.log(trip);
 
   // Sync form data when trip loads
   useEffect(() => {
-    if (trip)
-      setEditFormData({
-        destination: trip.destination,
-        days: trip.days,
-        budgetTier: trip.budgetTier,
-        interests: trip.interests,
-      });
+    if (!trip) return;
+
+    setEditFormData({
+      destination: trip.destination || "",
+      origin: trip.origin || "",
+      days: trip.days || 3,
+      budgetTier: trip.budgetTier || "Medium",
+
+      // convert array -> string for the input field
+      interests: Array.isArray(trip.interests) ? trip.interests.join(", ") : "",
+
+      startDate: trip.startDate ? new Date(trip.startDate) : new Date(),
+
+      groupType: trip.travelGroupType || "Solo",
+      groupSize: trip.groupSize || 1,
+    });
   }, [trip]);
 
   if (loading)
@@ -82,7 +97,20 @@ export default function TripViewPage() {
   // Wrapped Handlers
   const handleGlobalEditSubmit = async () => {
     setIsProcessing(true);
-    const success = await actions.globalEdit(editFormData);
+
+    const payload = {
+      ...editFormData,
+      interests:
+        typeof editFormData.interests === "string"
+          ? editFormData.interests
+              .split(",")
+              .map((i) => i.trim())
+              .filter(Boolean)
+          : editFormData.interests,
+      travelGroupType: editFormData.groupType,
+    };
+
+    const success = await actions.globalEdit(payload);
     if (success) setShowGlobalEdit(false);
     setIsProcessing(false);
   };
